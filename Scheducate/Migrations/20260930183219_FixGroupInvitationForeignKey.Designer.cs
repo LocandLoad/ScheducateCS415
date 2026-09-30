@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Scheducate.Data;
 
@@ -11,9 +12,11 @@ using Scheducate.Data;
 namespace Scheducate.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260930183219_FixGroupInvitationForeignKey")]
+    partial class FixGroupInvitationForeignKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,15 +201,18 @@ namespace Scheducate.Migrations
                     b.Property<int?>("SharedScheduleId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UserGroupId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GroupId");
-
                     b.HasIndex("SharedScheduleId");
+
+                    b.HasIndex("UserGroupId");
 
                     b.HasIndex("UserId");
 
@@ -392,15 +398,13 @@ namespace Scheducate.Migrations
 
             modelBuilder.Entity("Scheducate.Models.GroupMember", b =>
                 {
-                    b.HasOne("Scheducate.Models.UserGroup", "UserGroup")
-                        .WithMany("Members")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("Scheducate.Models.Schedule", "SharedSchedule")
                         .WithMany()
                         .HasForeignKey("SharedScheduleId");
+
+                    b.HasOne("Scheducate.Models.UserGroup", "UserGroup")
+                        .WithMany("Members")
+                        .HasForeignKey("UserGroupId");
 
                     b.HasOne("User", "User")
                         .WithMany("GroupMemberships")

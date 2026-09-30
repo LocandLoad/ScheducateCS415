@@ -1,0 +1,108 @@
+﻿@using Scheducate.Models
+
+@{
+ViewData["Title"] = "My Groups";
+
+var ownedGroups = ViewBag.OwnedGroups as IEnumerable<UserGroup>
+                  ?? Enumerable.Empty<UserGroup>();
+
+var memberGroups = ViewBag.MemberGroups as IEnumerable<GroupMember>
+                   ?? Enumerable.Empty<GroupMember>();
+
+}
+
+<div class="container mt-4"> <div class="d-flex justify-content-between align-items-center mb-4"> <h1>My Groups</h1>
+
+    <a asp-action="Create" class="btn btn-primary">
+        Create Group
+    </a>
+</div>
+
+<!-- Groups Owned -->
+<section class="mb-5">
+    <h2>Owned Groups</h2>
+
+    @if (!ownedGroups.Any())
+    {
+        <div class="alert alert-light border">
+            You don't own any groups yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var group in ownedGroups)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@group.Name</h5>
+
+                            <p class="card-text text-muted">
+                                @group.Members.Count member@(group.Members.Count == 1 ? "" : "s")
+                            </p>
+
+                            <div class="d-flex gap-2">
+                                <a asp-action="Details"
+                                   asp-route-id="@group.Id"
+                                   class="btn btn-outline-primary">
+                                    View Group
+                                </a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@group.Id"
+                                   class="btn btn-outline-danger">
+                                    Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+<!-- Groups Joined -->
+<section>
+    <h2>Joined Groups</h2>
+
+    @if (!memberGroups.Any())
+    {
+        <div class="alert alert-light border">
+            You aren't a member of any other groups yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var membership in memberGroups)
+            {
+                if (membership.UserGroup != null)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    @membership.UserGroup.Name
+                                </h5>
+
+                                <p class="card-text text-muted">
+                                    Group ID: @membership.GroupId
+                                </p>
+
+                                <a asp-action="Details"
+                                   asp-route-id="@membership.GroupId"
+                                   class="btn btn-outline-primary">
+                                    View Group
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+</section>
+
+</div>
