@@ -1,0 +1,167 @@
+﻿@model IEnumerable<Schedule>
+
+@{
+    ViewData["Title"] = "My Schedules";
+
+    string[] days =
+    {
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+};
+
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<a class="btn btn-primary mb-4" asp-controller="Schedules" asp-action="Create">
+    Create Schedule
+</a>
+
+@if (!Model.Any())
+{
+    <p>You don't have any schedules yet.</p>
+}
+else
+{
+    @foreach (var schedule in Model)
+    {
+        <div class="schedule-card mb-5">
+
+            <h2>@schedule.Name</h2>
+
+            <div class="schedule-container">
+                <div class="schedule-grid">
+
+                    <!-- Header -->
+                    <div class="time-header"></div>
+
+                    @foreach (var day in days)
+                    {
+                        <div class="day-header">
+                            @day
+                        </div>
+                    }
+
+                    <!-- Time rows -->
+                    @for (int timeIndex = 0; timeIndex < 48; timeIndex++)
+                    {
+                        int hour = timeIndex / 2;
+                        int minute = (timeIndex % 2) * 30;
+
+                        string period = hour < 12 ? "AM" : "PM";
+                        int displayHour = hour % 12;
+
+                        if (displayHour == 0)
+                        {
+                            displayHour = 12;
+                        }
+
+                        string time = $"{displayHour}:{minute:00} {period}";
+
+                        <div class="time-label">
+                            @time
+                        </div>
+
+                        @for (int dayIndex = 0; dayIndex < 7; dayIndex++)
+                        {
+                            int slotIndex = dayIndex * 48 + timeIndex;
+
+                            int byteIndex = slotIndex / 8;
+                            int bitIndex = slotIndex % 8;
+
+                            bool selected =
+                            (schedule.Availability[byteIndex] &
+                            (1 << bitIndex)) != 0;
+
+                            <div class="availability-cell @(selected ? "selected" : "")">
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <a class="btn btn-danger"
+               asp-controller="Schedules"
+               asp-action="Delete"
+               asp-route-id="@schedule.Id">
+                Delete Schedule
+            </a>
+        </div>
+    }
+
+}
+
+<style>
+    .schedule-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        background-color: #fff;
+    }
+
+        .schedule-card h2 {
+            margin-bottom: 15px;
+        }
+
+    .schedule-container {
+        width: 100%;
+        max-height: 700px;
+        overflow: auto;
+        border: 1px solid #dee2e6;
+        user-select: none;
+    }
+
+    .schedule-grid {
+        display: grid;
+        grid-template-columns: 90px repeat(7, minmax(100px, 1fr));
+        min-width: 800px;
+    }
+
+    .time-header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        background: white;
+        z-index: 3;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .day-header {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 2;
+        text-align: center;
+        font-weight: bold;
+        padding: 10px 4px;
+        border-bottom: 1px solid #dee2e6;
+        border-left: 1px solid #dee2e6;
+    }
+
+    .time-label {
+        height: 30px;
+        padding-right: 8px;
+        text-align: right;
+        font-size: 12px;
+        color: #6c757d;
+        border-bottom: 1px solid #eee;
+        background: white;
+    }
+
+    .availability-cell {
+        height: 30px;
+        border-left: 1px solid #dee2e6;
+        border-bottom: 1px solid #eee;
+        background-color: white;
+    }
+
+        .availability-cell.selected {
+            background-color: #0d6efd;
+        }
+</style>
