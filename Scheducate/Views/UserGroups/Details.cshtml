@@ -10,6 +10,27 @@
     var currentUserId = UserManager.GetUserId(User);
     var isOwner = Model.OwnerId == currentUserId;
     var isMember = Model.Members.Any(m => m.UserId == currentUserId);
+
+    var userSchedules = ViewBag.UserSchedules as IEnumerable<Schedule>
+                       ?? Enumerable.Empty<Schedule>();
+}
+
+@{
+    string[] days =
+    {
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+    };
+
+    var overlapAvailability =
+        ViewBag.OverlapAvailability as byte[] ?? new byte[42];
+
+    var sharedCount = (int)(ViewBag.SharedScheduleCount ?? 0);
 }
 
 <div class="container mt-4">
@@ -42,6 +63,76 @@
         </a>
     </div>
 
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="mb-0">
+                Shared Availability
+            </h3>
+        </div>
+
+        <div class="card-body">
+
+            @if (sharedCount == 0)
+            {
+                <p class="text-muted">
+                    No schedules have been shared yet.
+                </p>
+            }
+            else
+            {
+                <div class="schedule-container">
+                    <div class="schedule-grid">
+
+                        <div class="time-header"></div>
+
+                        @foreach (var day in days)
+                        {
+                            <div class="day-header">
+                                @day
+                            </div>
+                        }
+
+                        @for (int timeIndex = 0; timeIndex < 48; timeIndex++)
+                        {
+                            int hour = timeIndex / 2;
+                            int minute = (timeIndex % 2) * 30;
+
+                            string period = hour < 12 ? "AM" : "PM";
+
+                            int displayHour = hour % 12;
+
+                            if (displayHour == 0)
+                            {
+                                displayHour = 12;
+                            }
+
+                            <div class="time-label">
+                                @($"{displayHour}:{minute:00} {period}")
+                            </div>
+
+                            @for (int dayIndex = 0; dayIndex < 7; dayIndex++)
+                            {
+                                int slotIndex = dayIndex * 48 + timeIndex;
+
+                                int byteIndex = slotIndex / 8;
+                                int bitIndex = slotIndex % 8;
+
+                                bool selected =
+                                (overlapAvailability[byteIndex] &
+                                (1 << bitIndex)) != 0;
+
+                                <div class="availability-cell @(selected ? "selected" : "")">
+                                </div>
+                            }
+                        }
+
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <h3 class="mb-0">Members</h3>
@@ -60,17 +151,63 @@
                     @foreach (var member in Model.Members)
                     {
                         <div class="list-group-item">
-                            <div>
-                                <strong>
-                                    @(member.User?.UserName ?? "Unknown User")
-                                </strong>
+                            <div class="d-flex justify-content-between align-items-center">
 
-                                @if (member.UserId == Model.OwnerId)
+                                <div>
+                                    <strong>
+                                        @(member.User?.UserName ?? "Unknown User")
+                                    </strong>
+
+                                    @if (member.UserId == Model.OwnerId)
+                                    {
+                                        <span class="badge bg-primary ms-2">
+                                            Owner
+                                        </span>
+                                    }
+
+                                    @if (member.SharedSchedule != null)
+                                    {
+                                        <div class="text-muted mt-1">
+                                            Schedule:
+                                            @member.SharedSchedule.Name
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted mt-1">
+                                            No schedule shared
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (member.UserId == currentUserId)
                                 {
-                                    <span class="badge bg-primary ms-2">
-                                        Owner
-                                    </span>
+                                    <form asp-action="AddSchedule"
+                                          method="post">
+
+                                        <input type="hidden"
+                                               name="groupId"
+                                               value="@Model.Id" />
+
+                                        <select name="scheduleId"
+                                                class="form-select"
+                                                onchange="this.form.submit()">
+
+                                            <option value="">
+                                                Select a schedule
+                                            </option>
+
+                                            @foreach (var schedule in userSchedules)
+                                            {
+                                                <option value="@schedule.Id"
+                                                        selected="@(member.SharedScheduleId == schedule.Id)">
+                                                    @schedule.Name
+                                                </option>
+                                            }
+                                        </select>
+                                    </form>
                                 }
+
                             </div>
 
                             @if (!string.IsNullOrEmpty(member.User?.Email))
@@ -87,3 +224,4 @@
     </div>
 
 </div>
+<link rel="stylesheet" href="~/css/Schedule.css" />
