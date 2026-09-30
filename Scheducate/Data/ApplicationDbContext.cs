@@ -25,6 +25,12 @@ namespace Scheducate.Data
                 .WithMany(g => g.Members)
                 .HasForeignKey(m => m.GroupId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<GroupMember>()
+                .HasOne(m => m.SharedSchedule)
+                .WithMany()
+                .HasForeignKey(m => m.SharedScheduleId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

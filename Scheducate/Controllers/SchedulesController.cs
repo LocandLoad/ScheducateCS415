@@ -106,7 +106,18 @@ namespace Scheducate.Controllers
                 return NotFound();
             }
 
+            // Remove this schedule from any groups where it is being shared
+            var groupMembers = await _context.GroupMembers
+                .Where(m => m.SharedScheduleId == id)
+                .ToListAsync();
+
+            foreach (var member in groupMembers)
+            {
+                member.SharedScheduleId = null;
+            }
+
             _context.Schedule.Remove(schedule);
+
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));

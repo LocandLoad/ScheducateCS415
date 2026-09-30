@@ -142,6 +142,8 @@ namespace Scheducate.Controllers
             var userGroup = await _context.UserGroups
                 .Include(g => g.Members)
                     .ThenInclude(m => m.User)
+                .Include(g => g.Members)
+                    .ThenInclude(m => m.SharedSchedule)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (userGroup == null)
@@ -149,7 +151,6 @@ namespace Scheducate.Controllers
                 return NotFound();
             }
 
-            // Only allow members or the owner to view the group
             var isOwner = userGroup.OwnerId == userId;
             var isMember = userGroup.Members.Any(m => m.UserId == userId);
 
@@ -158,7 +159,87 @@ namespace Scheducate.Controllers
                 return Forbid();
             }
 
+            // Get the current user's schedules
+            var schedules = await _context.Schedule
+                .Where(s => s.UserId == userId)
+                .ToListAsync();
+
+            ViewBag.UserSchedules = schedules;
+
+            // Build overlap schedule
+            var sharedSchedules = userGroup.Members
+                .Where(m => m.SharedSchedule != null)
+                .Select(m => m.SharedSchedule!)
+                .ToList();
+
+            byte[] overlapAvailability = new byte[42];
+
+            if (sharedSchedules.Any())
+            {
+                Array.Copy(
+                    sharedSchedules[0].Availability,
+                    overlapAvailability,
+                    overlapAvailability.Length);
+
+                foreach (var schedule in sharedSchedules.Skip(1))
+                {
+                    for (int i = 0; i < overlapAvailability.Length; i++)
+                    {
+                        overlapAvailability[i] &= schedule.Availability[i];
+                    }
+                }
+            }
+
+            ViewBag.OverlapAvailability = overlapAvailability;
+            ViewBag.SharedScheduleCount = sharedSchedules.Count;
+
             return View(userGroup);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddSchedule(int groupId, int? scheduleId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (userId == null)
+            {
+                return Challenge();
+            }
+
+            var membership = await _context.GroupMembers
+                .FirstOrDefaultAsync(m =>
+                    m.GroupId == groupId &&
+                    m.UserId == userId);
+
+            if (membership == null)
+            {
+                return Forbid();
+            }
+
+            // User selected "Select a schedule"
+            if (scheduleId == null)
+            {
+                membership.SharedScheduleId = null;
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Details), new { id = groupId });
+            }
+
+            var scheduleExists = await _context.Schedule
+                .AnyAsync(s =>
+                    s.Id == scheduleId &&
+                    s.UserId == userId);
+
+            if (!scheduleExists)
+            {
+                return BadRequest();
+            }
+
+            membership.SharedScheduleId = scheduleId;
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = groupId });
         }
         [HttpGet]
         public async Task<IActionResult> Invite(int id)
