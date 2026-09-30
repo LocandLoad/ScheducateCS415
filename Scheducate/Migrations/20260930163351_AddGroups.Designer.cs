@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Scheducate.Data;
 
@@ -11,9 +12,11 @@ using Scheducate.Data;
 namespace Scheducate.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260930163351_AddGroups")]
+    partial class AddGroups
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -159,31 +162,6 @@ namespace Scheducate.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Scheducate.Models.GroupInvitation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GroupId");
-
-                    b.ToTable("GroupInvitations");
-                });
-
             modelBuilder.Entity("Scheducate.Models.GroupMember", b =>
                 {
                     b.Property<int>("Id")
@@ -198,15 +176,18 @@ namespace Scheducate.Migrations
                     b.Property<int?>("SharedScheduleId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UserGroupId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GroupId");
-
                     b.HasIndex("SharedScheduleId");
+
+                    b.HasIndex("UserGroupId");
 
                     b.HasIndex("UserId");
 
@@ -379,28 +360,15 @@ namespace Scheducate.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Scheducate.Models.GroupInvitation", b =>
-                {
-                    b.HasOne("Scheducate.Models.UserGroup", "UserGroup")
-                        .WithMany("Invitations")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UserGroup");
-                });
-
             modelBuilder.Entity("Scheducate.Models.GroupMember", b =>
                 {
-                    b.HasOne("Scheducate.Models.UserGroup", "UserGroup")
-                        .WithMany("Members")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("Scheducate.Models.Schedule", "SharedSchedule")
                         .WithMany()
                         .HasForeignKey("SharedScheduleId");
+
+                    b.HasOne("Scheducate.Models.UserGroup", "UserGroup")
+                        .WithMany("Members")
+                        .HasForeignKey("UserGroupId");
 
                     b.HasOne("User", "User")
                         .WithMany("GroupMemberships")
@@ -439,8 +407,6 @@ namespace Scheducate.Migrations
 
             modelBuilder.Entity("Scheducate.Models.UserGroup", b =>
                 {
-                    b.Navigation("Invitations");
-
                     b.Navigation("Members");
                 });
 

@@ -1,0 +1,57 @@
+﻿@{
+    ViewData["Title"] = "Invite Members";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+
+            <h1>Invite Members</h1>
+
+            <p>
+                Share the link below to invite someone to
+                <strong>@ViewBag.GroupName</strong>.
+            </p>
+
+            <div class="input-group mb-3">
+                <input id="invitationLink"
+                       type="text"
+                       class="form-control"
+                       value="@ViewBag.InvitationUrl"
+                       readonly />
+
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="copyInvitationLink()">
+                    Copy
+                </button>
+            </div>
+
+            <div id="copyMessage" class="text-success mb-3" style="display:none;">
+                Invitation link copied!
+            </div>
+
+            <a asp-action="Details"
+               asp-route-id="@Context.Request.RouteValues["id"]"
+               class="btn btn-secondary">
+                Back to Group
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        function copyInvitationLink() {
+        const input = document.getElementById("invitationLink");
+
+                navigator.clipboard.writeText(input.value);
+
+                const message = document.getElementById("copyMessage");
+                message.style.display = "block";
+            }
+    </script>
+
+}

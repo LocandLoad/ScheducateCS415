@@ -10,6 +10,21 @@ namespace Scheducate.Data
             : base(options)
         {
         }
-        public DbSet<Scheducate.Models.Schedule> Schedule { get; set; } = default!;
+
+        public DbSet<Schedule> Schedule { get; set; } = default!;
+        public DbSet<UserGroup> UserGroups { get; set; } = default!;
+        public DbSet<GroupMember> GroupMembers { get; set; } = default!;
+        public DbSet<GroupInvitation> GroupInvitations { get; set; } = default!;
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<GroupMember>()
+                .HasOne(m => m.UserGroup)
+                .WithMany(g => g.Members)
+                .HasForeignKey(m => m.GroupId)
+                .OnDelete(DeleteBehavior.NoAction);
+        }
     }
 }
