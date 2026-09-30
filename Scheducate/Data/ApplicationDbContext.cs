@@ -10,5 +10,6 @@ namespace Scheducate.Data
             : base(options)
         {
         }
+        public DbSet<Scheducate.Models.Schedule> Schedule { get; set; } = default!;
     }
 }

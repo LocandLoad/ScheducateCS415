@@ -1,0 +1,273 @@
+﻿@model Schedule
+
+@{
+    string[] days =
+    {
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+    };
+}
+
+<h2>Create Schedule</h2>
+
+<form asp-action="Create" method="post" id="scheduleForm">
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">Schedule Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <input type="hidden" id="Availability" name="Availability" />
+
+    <div class="schedule-container">
+        <div class="schedule-grid">
+
+            <!-- Header -->
+            <div class="time-header"></div>
+
+            @foreach (var day in days)
+            {
+                <div class="day-header">@day</div>
+            }
+
+            <!-- Time rows -->
+            @for (int timeIndex = 0; timeIndex < 48; timeIndex++)
+            {
+                int hour = timeIndex / 2;
+                int minute = (timeIndex % 2) * 30;
+
+                string period = hour < 12 ? "AM" : "PM";
+                int displayHour = hour % 12;
+
+                if (displayHour == 0)
+                {
+                    displayHour = 12;
+                }
+
+                string time = $"{displayHour}:{minute:00} {period}";
+
+                <div class="time-label">
+                    @time
+                </div>
+
+                @for (int dayIndex = 0; dayIndex < 7; dayIndex++)
+                {
+                    int slotIndex = dayIndex * 48 + timeIndex;
+
+                    <div class="availability-cell"
+                         data-slot="@slotIndex">
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">
+            Create
+        </button>
+    </div>
+</form>
+
+<style>
+    .schedule-container {
+        width: 100%;
+        max-height: 700px;
+        overflow: auto;
+        border: 1px solid #dee2e6;
+        user-select: none;
+    }
+
+    .schedule-grid {
+        display: grid;
+        grid-template-columns: 90px repeat(7, minmax(100px, 1fr));
+        min-width: 800px;
+    }
+
+    .time-header {
+        position: sticky;
+        top: 0;
+        left: 0;
+        background: white;
+        z-index: 3;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .day-header {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 2;
+        text-align: center;
+        font-weight: bold;
+        padding: 10px 4px;
+        border-bottom: 1px solid #dee2e6;
+        border-left: 1px solid #dee2e6;
+    }
+
+    .time-label {
+        height: 30px;
+        padding-right: 8px;
+        text-align: right;
+        font-size: 12px;
+        color: #6c757d;
+        border-bottom: 1px solid #eee;
+        background: white;
+    }
+
+    .availability-cell {
+        height: 30px;
+        border-left: 1px solid #dee2e6;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        background-color: white;
+    }
+
+    .availability-cell:hover {
+        background-color: #e9ecef;
+    }
+
+    .availability-cell.selected {
+        background-color: #0d6efd;
+    }
+</style>
+
+<script>
+    const TOTAL_BYTES = 42;
+
+    const availability = new Uint8Array([@Html.Raw(string.Join(",", Model.Availability.Select(b => b)))]);
+
+    let isDragging = false;
+    let paintValue = true;
+
+    function isSelected(slot) {
+        const byteIndex = Math.floor(slot / 8);
+        const bitIndex = slot % 8;
+
+        return (availability[byteIndex] & (1 << bitIndex)) !== 0;
+    }
+
+    function setSelected(slot, value) {
+        const byteIndex = Math.floor(slot / 8);
+        const bitIndex = slot % 8;
+
+        if (value) {
+            availability[byteIndex] |= (1 << bitIndex);
+        } else {
+            availability[byteIndex] &= ~(1 << bitIndex);
+        }
+    }
+
+    function updateCell(cell) {
+        const slot = Number(cell.dataset.slot);
+
+        cell.classList.toggle(
+            "selected",
+            isSelected(slot)
+        );
+    }
+
+    function selectCell(cell) {
+        if (!cell || !cell.classList.contains("availability-cell")) {
+            return;
+        }
+
+        const slot = Number(cell.dataset.slot);
+
+        setSelected(slot, paintValue);
+        updateCell(cell);
+    }
+
+    function updateAvailabilityInput() {
+        let binary = "";
+
+        for (let i = 0; i < availability.length; i++) {
+            binary += String.fromCharCode(availability[i]);
+        }
+
+        document.getElementById("Availability").value = btoa(binary);
+    }
+    document.querySelectorAll(".availability-cell").forEach(cell => {updateCell(cell);}
+    );
+
+    /*
+     * Start dragging.
+     */
+    document.addEventListener("pointerdown", function (event) {
+        const cell = event.target.closest(".availability-cell");
+
+        if (!cell) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const slot = Number(cell.dataset.slot);
+
+        // Clicking an unselected cell paints.
+        // Clicking a selected cell erases.
+        paintValue = !isSelected(slot);
+
+        isDragging = true;
+
+        selectCell(cell);
+    });
+
+    /*
+     * Continue selecting cells while dragging.
+     */
+    document.addEventListener("pointermove", function (event) {
+        if (!isDragging) {
+            return;
+        }
+
+        const element = document.elementFromPoint(
+            event.clientX,
+            event.clientY
+        );
+
+        if (!element) {
+            return;
+        }
+
+        const cell = element.closest(".availability-cell");
+
+        if (cell) {
+            selectCell(cell);
+        }
+    });
+
+    /*
+     * Stop dragging.
+     */
+    document.addEventListener("pointerup", function () {
+        if (!isDragging) {
+            return;
+        }
+
+        isDragging = false;
+
+        updateAvailabilityInput();
+    });
+
+    /*
+     * Also stop dragging if the pointer leaves the browser window.
+     */
+    document.addEventListener("pointercancel", function () {
+        isDragging = false;
+        updateAvailabilityInput();
+    });
+
+    /*
+     * Make absolutely sure the latest availability
+     * is included in the form submission.
+     */
+    document.getElementById("scheduleForm").addEventListener("submit", function () {
+        updateAvailabilityInput();
+    });
+</script>
