@@ -37,6 +37,19 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+// Creates demo users
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider
+        .GetRequiredService<UserManager<User>>();
+
+    var context = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    await context.Database.MigrateAsync();
+
+    await DbInitializer.SeedAsync(userManager, context);
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
