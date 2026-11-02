@@ -241,7 +241,8 @@ namespace Scheducate.Controllers
 
             return RedirectToAction(nameof(Details), new { id = groupId });
         }
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Invite(int id)
         {
             var userId = _userManager.GetUserId(User);
@@ -344,6 +345,11 @@ namespace Scheducate.Controllers
             if (invitation == null)
             {
                 return NotFound();
+            }
+
+            if (invitation.CreatedAt.AddDays(7) <= DateTime.UtcNow) // invite expires after 7 days
+            {
+                return BadRequest("Invitation has expired.");
             }
 
             // Check whether the user is already a member

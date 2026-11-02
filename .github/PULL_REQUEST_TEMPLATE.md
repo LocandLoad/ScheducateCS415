@@ -1,0 +1,16 @@
+## What does this PR do?
+<!-- One or two sentences. Reference the backlog item ID if applicable. -->
+## Checklist
+### Architecture conformance
+- [ ] Models, Views, and Controllers are kept to their own jobs and descriptions
+### Design quality
+- [ ] New functions are named for what they do, not how they do it
+- [ ] No duplicated validation or business logic that should be extracted
+### UX and accessibility (if applicable)
+- [ ] New interactive elements are keyboard-operable and properly labeled
+- [ ] New UI states (loading, empty, error) are explicitly designed
+- [ ] Layout verified at mobile width
+### Process hygiene
+- [ ] Commit messages are descriptive and reference the backlog item
+- [ ] `docs/BACKLOG.md` updated if applicable
+- [ ] No secrets committed
