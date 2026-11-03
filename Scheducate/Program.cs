@@ -5,23 +5,36 @@ using System.Runtime.InteropServices;
 using Scheducate.Models;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
-using Scheducate.Areas.Identity.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var dbPassword = builder.Configuration["SQLPassword"];
 
 // Add services to the container.
-if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+if (builder.Environment.IsEnvironment("Testing"))
 {
-    var connectionString = builder.Configuration.GetConnectionString("SqlServerConnection") ?? throw new InvalidOperationException("Connection string 'SqlServerConnection' not found.");
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlite("Data Source=ScheducateTesting.db"));
+}
+else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+{
+    var connectionString = builder.Configuration
+        .GetConnectionString("SqlServerConnection")
+        ?? throw new InvalidOperationException(
+            "Connection string 'SqlServerConnection' not found.");
+
     connectionString = connectionString.Replace("{your_password}", dbPassword);
+
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(connectionString));
 }
 else
 {
-    var connectionString = builder.Configuration.GetConnectionString("SqliteConnection") ?? throw new InvalidOperationException("Connection string 'SqliteConnection' not found.");
+    var connectionString = builder.Configuration
+        .GetConnectionString("SqliteConnection")
+        ?? throw new InvalidOperationException(
+            "Connection string 'SqliteConnection' not found.");
+
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlite(connectionString));
 }
@@ -72,17 +85,20 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 
 // Creates demo users
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    var userManager = scope.ServiceProvider
-        .GetRequiredService<UserManager<User>>();
+    using (var scope = app.Services.CreateScope())
+    {
+        var userManager = scope.ServiceProvider
+            .GetRequiredService<UserManager<User>>();
 
-    var context = scope.ServiceProvider
-        .GetRequiredService<ApplicationDbContext>();
+        var context = scope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
 
-    await context.Database.MigrateAsync();
+        await context.Database.MigrateAsync();
 
-    await DbInitializer.SeedAsync(userManager, context);
+        await DbInitializer.SeedAsync(userManager, context);
+    }
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -114,3 +130,5 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+public partial class Program { }
