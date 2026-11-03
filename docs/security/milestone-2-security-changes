@@ -1,0 +1,5 @@
+## Changes
+- Added rate limiting to login requests
+- Changed group invitation creation from GET to POST
+- Added token expiration for invitations
+- Validated availability as being 42 bytes
