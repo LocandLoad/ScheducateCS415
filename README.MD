@@ -19,6 +19,7 @@ A backlog item is Done when:
 
 ## How to run the code tests
 - Open a terminal.
+- Make sure you are in the path of the project, 'ScheducateCS415'
 - Run 'dotnet test' for a full test suite.
 - Run 'dotnet test --collect:"XPlat Code Coverage"' to save test results.
 
