@@ -47,6 +47,14 @@ namespace Scheducate.Controllers
         {
             schedule.UserId = _userManager.GetUserId(User)!;
 
+            if (schedule.Availability == null || schedule.Availability.Length != 42) //Validate that the availability is 42 bytes
+            {
+                ModelState.AddModelError(
+                    nameof(schedule.Availability),
+                    "Availability must contain exactly 42 bytes."
+                );
+            }
+
             if (!ModelState.IsValid)
             {
                 foreach (var error in ModelState)

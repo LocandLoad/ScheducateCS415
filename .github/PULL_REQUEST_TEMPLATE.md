@@ -2,12 +2,10 @@
 <!-- One or two sentences. Reference the backlog item ID if applicable. -->
 ## Checklist
 ### Architecture conformance
-- [ ] No route handler contains business logic that belongs in a Service
-- [ ] No module outside `repositories/` imports `@prisma/client` directly
+- [ ] Models, Views, and Controllers are kept to their own jobs and descriptions
 ### Design quality
 - [ ] New functions are named for what they do, not how they do it
 - [ ] No duplicated validation or business logic that should be extracted
-- [ ] Error handling follows the established typed-error pattern
 ### UX and accessibility (if applicable)
 - [ ] New interactive elements are keyboard-operable and properly labeled
 - [ ] New UI states (loading, empty, error) are explicitly designed
