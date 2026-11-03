@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Scheducate.Data;
 
 namespace Scheducate.Tests.Infrastructure;
@@ -21,6 +22,8 @@ public class ScheducateWebApplicationFactory : WebApplicationFactory<Program>
     {
         _connection.Open();
     }
+
+    
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -40,9 +43,26 @@ public class ScheducateWebApplicationFactory : WebApplicationFactory<Program>
                 options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
                 options.DefaultScheme = TestAuthHandler.SchemeName;
             })
+
             .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
                 TestAuthHandler.SchemeName,
                 options => { });
+        });
+
+        builder.ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.SetMinimumLevel(LogLevel.None);
+        });
+
+        builder.ConfigureServices(services =>
+        {
+            services.AddLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.None);
+                logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
+                logging.AddFilter("Microsoft.AspNetCore", LogLevel.None);
+            });
         });
     }
 
