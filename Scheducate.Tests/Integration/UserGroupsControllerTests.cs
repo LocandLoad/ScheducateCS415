@@ -1,3 +1,4 @@
+//Tests for user-group invitation functionality.
 using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,8 @@ public class UserGroupsControllerTests
 {
     private const string TestUserId = "test-user";
 
-    // --------------------------------------------------
+   
     // TEST 1: A valid invitation can be accepted
-    // --------------------------------------------------
-
     [Fact]
     public async Task AcceptInvitation_ValidInvitation_AddsMember()
     {
@@ -65,10 +64,8 @@ public class UserGroupsControllerTests
     }
 
 
-    // --------------------------------------------------
-    // TEST 2: Expired invitations are rejected
-    // --------------------------------------------------
 
+    // TEST 2: Expired invitations are rejected
     [Fact]
     public async Task AcceptInvitation_ExpiredInvitation_ReturnsBadRequest()
     {
@@ -115,10 +112,7 @@ public class UserGroupsControllerTests
     }
 
 
-    // --------------------------------------------------
     // TEST 3: POST requests without antiforgery tokens fail
-    // --------------------------------------------------
-
     [Fact]
     public async Task AcceptInvitation_MissingAntiforgeryToken_ReturnsBadRequest()
     {
@@ -146,10 +140,8 @@ public class UserGroupsControllerTests
     }
 
 
-    // --------------------------------------------------
-    // TEST 4: Invitations cannot be used twice
-    // --------------------------------------------------
 
+    // TEST 4: Invitations cannot be used twice
     [Fact]
     public async Task AcceptInvitation_AlreadyUsedInvitation_ReturnsNotFound()
     {
@@ -192,10 +184,8 @@ public class UserGroupsControllerTests
         Assert.Equal(HttpStatusCode.NotFound, secondResponse.StatusCode);
     }
 
-    // --------------------------------------------------
-    // TEST 5: Invalid tokens are rejected
-    // --------------------------------------------------
 
+    // TEST 5: Invalid tokens are rejected
     [Fact]
     public async Task AcceptInvitation_InvalidAntiforgeryToken_ReturnsBadRequest()
     {
@@ -213,9 +203,8 @@ public class UserGroupsControllerTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    // --------------------------------------------------
     // HELPER: Create a test group and invitation
-    // --------------------------------------------------
+
 
     private static async Task<(int GroupId, string Token)>
         SeedInvitationAsync(
@@ -244,12 +233,29 @@ public class UserGroupsControllerTests
 
             context.Users.Add(user);
         }
+                // Create separate group owner
+        var owner = await context.Users.FindAsync("test-owner");
+
+        if (owner == null)
+        {
+            owner = new User
+            {
+                Id = "test-owner",
+                UserName = "owner@example.com",
+                NormalizedUserName = "OWNER@EXAMPLE.COM",
+                Email = "owner@example.com",
+                NormalizedEmail = "OWNER@EXAMPLE.COM",
+                EmailConfirmed = true
+            };
+
+            context.Users.Add(owner);
+        }
 
         // Create test group
         var group = new UserGroup
         {
             Name = "Test Group",
-            OwnerId = TestUserId
+            OwnerId = "test-owner"
         };
 
         context.UserGroups.Add(group);
@@ -274,9 +280,8 @@ public class UserGroupsControllerTests
     }
 
 
-    // --------------------------------------------------
+
     // HELPER: Retrieve antiforgery token from a GET page
-    // --------------------------------------------------
 
     private static async Task<string> GetAntiforgeryTokenAsync(
         HttpClient client,

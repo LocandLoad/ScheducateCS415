@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheducate.Data;
 using Scheducate.Models;
+using Scheducate.BusinessRules;
 
 namespace Scheducate.Controllers
 {
@@ -47,7 +48,7 @@ namespace Scheducate.Controllers
         {
             schedule.UserId = _userManager.GetUserId(User)!;
 
-            if (schedule.Availability == null || schedule.Availability.Length != 42) //Validate that the availability is 42 bytes
+            if (!ScheduleRules.HasValidAvailability(schedule.Availability)) //Validate that the availability is 42 bytes
             {
                 ModelState.AddModelError(
                     nameof(schedule.Availability),

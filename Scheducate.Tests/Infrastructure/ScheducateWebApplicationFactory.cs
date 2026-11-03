@@ -1,3 +1,4 @@
+//Configures the application for testing, including an in-memory SQLite database and test authentication.
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

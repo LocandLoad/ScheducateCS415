@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheducate.Data;
 using Scheducate.Models;
+using Scheducate.BusinessRules;
 
 namespace Scheducate.Controllers
 {
@@ -347,7 +348,9 @@ namespace Scheducate.Controllers
                 return NotFound();
             }
 
-            if (invitation.CreatedAt.AddDays(7) <= DateTime.UtcNow) // invite expires after 7 days
+            if (InvitationRules.IsExpired(
+                invitation.CreatedAt,
+                DateTime.UtcNow))
             {
                 return BadRequest("Invitation has expired.");
             }
