@@ -40,11 +40,13 @@
 
         @if (Model.OwnerId == UserManager.GetUserId(User))
         {
-            <a asp-action="Invite"
+            <form asp-action="Invite"
                asp-route-id="@Model.Id"
-               class="btn btn-primary">
-                Create Invite
-            </a>
+               method="post">
+                <button type="submit" class="btn btn-success">
+                    Create Invite
+                </button>
+            </form>
 
             @if (!isMember)
             {
