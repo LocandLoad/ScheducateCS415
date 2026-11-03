@@ -18,6 +18,10 @@
 # Mono auto generated files
 mono_crash.*
 
+# Code coverage results
+coveragereport/
+TestResults/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
