@@ -8,8 +8,13 @@ A backlog item is Done when:
 - Download Visual Studio 2022 or later with ASP.NET and web development, .NET desktop development, and Data storage and processing.
 - Ensure you have .NET version 9.0 installed.
 - Clone the repository.
-- Open the project in Visual Studio.
-- Run “Update-Database” from the Package Manager Console.
+- Navigate to the project through the open file button in Visual Studio, opening the .sln file.
+- Open the terminal from the View menu.
+- Enter 'cd Scheducate'
+- Enter 'dotnet tool install --global dotnet-ef'
+- Enter 'dotnet ef database update'
+- Right click on scheducate and select 'set as startup project'
+- Wait, then click the gree arrow at the top of Visual Studio
 - Build and run project.
 
 ## How to run the code tests
