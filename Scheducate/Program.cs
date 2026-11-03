@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using Scheducate.Models;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
-using Scheducate.Areas.Identity.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
